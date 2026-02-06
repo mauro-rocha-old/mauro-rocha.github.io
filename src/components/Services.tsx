@@ -6,7 +6,11 @@ export const Services: React.FC = () => {
   const { services, language } = useData();
 
   return (
-    <section id="services" className="py-24 bg-[#0a0a0a]/95 backdrop-blur-xl relative border-b border-white/10">
+    <section
+      id="services"
+      className="py-24 bg-[#0a0a0a]/95 backdrop-blur-xl relative border-b border-white/10"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 1000px' }}
+    >
       <div className="container mx-auto px-6">
         <h2 className="text-sm font-mono text-gray-400 uppercase tracking-widest mb-16">
           {language === 'pt-BR' ? 'O Que Eu Faço' : 'What I Do'}

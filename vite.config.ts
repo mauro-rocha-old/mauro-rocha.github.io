@@ -23,7 +23,23 @@ export default defineConfig(({ mode }) => {
       },
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, '.'),
+          '@': path.resolve(__dirname, 'src'),
+        }
+      },
+      build: {
+        chunkSizeWarningLimit: 900,
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              react: ['react', 'react-dom', 'react-router-dom'],
+              three: ['three'],
+              r3f: ['@react-three/fiber'],
+              drei: ['@react-three/drei'],
+              motion: ['framer-motion'],
+              firebase: ['firebase/app', 'firebase/firestore'],
+              ui: ['lucide-react']
+            }
+          }
         }
       }
     };

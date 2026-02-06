@@ -29,7 +29,7 @@ export const WorkDetail: React.FC = () => {
   return (
     <div className="bg-background min-h-screen">
       <div className="pt-32 pb-12 container mx-auto px-6">
-        <MagneticButton onClick={() => navigate('/')}>
+        <MagneticButton onClick={() => navigate('/')} strength={0}>
           <button className="flex items-center gap-2 text-gray-400 hover:text-white mb-12 interactive">
             <ArrowLeft className="w-5 h-5" />
             <span className="uppercase tracking-widest text-sm">
@@ -86,6 +86,11 @@ export const WorkDetail: React.FC = () => {
             <img 
               src={project.image} 
               alt={project.title} 
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+              width={1600}
+              height={900}
               className="w-full h-full object-cover"
             />
           </div>
@@ -94,7 +99,16 @@ export const WorkDetail: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-24">
               {project.gallery.map((img, idx) => (
                 <div key={idx} className="w-full aspect-[4/3] rounded-xl overflow-hidden">
-                  <img src={img} alt={`${project.title} detail ${idx}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                  <img 
+                    src={img} 
+                    alt={`${project.title} detail ${idx}`} 
+                    loading="lazy"
+                    decoding="async"
+                    fetchpriority="low"
+                    width={1200}
+                    height={900}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
+                  />
                 </div>
               ))}
             </div>

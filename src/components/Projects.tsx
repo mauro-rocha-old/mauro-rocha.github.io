@@ -33,6 +33,11 @@ const ProjectCard: React.FC<{ project: Project; index: number }> = ({ project, i
           <img 
             src={project.image} 
             alt={project.title} 
+            loading="lazy"
+            decoding="async"
+            fetchpriority="low"
+            width={1200}
+            height={900}
             className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
           />
         </div>
@@ -51,7 +56,11 @@ export const Projects: React.FC = () => {
   const { projects, language } = useData();
 
   return (
-    <section id="work" className="py-20 relative bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/10">
+    <section
+      id="work"
+      className="py-20 relative bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/10"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 1400px' }}
+    >
       <div className="container mx-auto px-6 mb-16">
         <h2 className="text-sm font-mono text-gray-400 uppercase tracking-widest mb-4">
           {language === 'pt-BR' ? 'Trabalhos Selecionados' : 'Selected Works'}

@@ -34,7 +34,7 @@ declare module 'react' {
 const ParticleField = () => {
   const ref = useRef<THREE.Points>(null);
   
-  const count = 2000;
+  const count = 1200;
   const positions = useMemo(() => {
     const positions = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -232,8 +232,8 @@ export const Background3D: React.FC = () => {
     <div id="webgl-container">
       <Canvas
         camera={{ position: [0, 0, 9], fov: 50 }}
-        gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true }}
-        dpr={[1, 2]} 
+        gl={{ alpha: true, antialias: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }}
+        dpr={[1, 1.5]} 
       >
         <color attach="background" args={['transparent']} />
         
