@@ -107,7 +107,7 @@ export const WorkDetail: React.FC = () => {
               alt={project.title}
               loading="eager"
               decoding="async"
-              fetchpriority="high"
+              fetchPriority="high"
               width={1600}
               height={900}
               className="w-full h-full object-cover"
@@ -123,7 +123,7 @@ export const WorkDetail: React.FC = () => {
                     alt={`${project.title} detail ${idx}`}
                     loading="lazy"
                     decoding="async"
-                    fetchpriority="low"
+                    fetchPriority="low"
                     width={1200}
                     height={900}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"

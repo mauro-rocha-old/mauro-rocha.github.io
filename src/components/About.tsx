@@ -51,7 +51,7 @@ export const About: React.FC = () => {
                   alt="Mauro Rocha"
                   loading="lazy"
                   decoding="async"
-                  fetchpriority="low"
+                  fetchPriority="low"
                   width={800}
                   height={800}
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
