@@ -1,18 +1,4 @@
 // DataContext.tsx
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { Project, SiteContent, Language, Service } from "../types";
-import { db } from "../config/firebase";
-import {
-  collection,
-  doc,
-  onSnapshot,
-  setDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  runTransaction,
-  serverTimestamp,
-} from "firebase/firestore";
 import {
   getAuth,
   onAuthStateChanged,
@@ -20,6 +6,20 @@ import {
   signOut,
   User,
 } from "firebase/auth";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  runTransaction,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { db } from "../config/firebase";
+import { Language, Project, Service, SiteContent } from "../types";
 
 type Result = Promise<boolean>;
 
@@ -66,6 +66,7 @@ const defaultContent: SiteContent = {
     p1: defaultLang(),
     p2: defaultLang(),
     skillsTitle: defaultLang(),
+    skills: [],
     profileImage: "",
   },
   contact: {
@@ -80,6 +81,11 @@ function mergeLang(base: LangObj, incoming: any): LangObj {
     "pt-BR": typeof incoming?.["pt-BR"] === "string" ? incoming["pt-BR"] : base["pt-BR"],
     en: typeof incoming?.en === "string" ? incoming.en : base.en,
   };
+}
+
+function normalizeStringArray(base: string[], incoming: any): string[] {
+  if (!Array.isArray(incoming)) return base;
+  return incoming.map((v) => (typeof v === "string" ? v.trim() : "")).filter((v) => v !== "");
 }
 
 /**
@@ -101,6 +107,7 @@ function normalizeContent(raw: any): SiteContent {
       p1: mergeLang(defaultContent.about.p1, c.about?.p1),
       p2: mergeLang(defaultContent.about.p2, c.about?.p2),
       skillsTitle: mergeLang(defaultContent.about.skillsTitle, c.about?.skillsTitle),
+      skills: normalizeStringArray(defaultContent.about.skills, c.about?.skills),
       profileImage: typeof c.about?.profileImage === "string" ? c.about.profileImage : "",
     },
     contact: {

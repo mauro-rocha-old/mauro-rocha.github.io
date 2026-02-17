@@ -1,19 +1,24 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { useData } from '../context/DataContext';
+import { motion } from "framer-motion";
+import React from "react";
+import { useData } from "../context/DataContext";
+import { MagneticButton } from "./MagneticButton";
 
 export const Services: React.FC = () => {
   const { services, language } = useData();
+  const scrollToContact = () => {
+    const element = document.querySelector("#contact");
+    element?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <section
       id="services"
       className="py-24 bg-[#0a0a0a]/95 backdrop-blur-xl relative border-b border-white/10"
-      style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 1000px' }}
+      style={{ contentVisibility: "auto", containIntrinsicSize: "1px 1000px" }}
     >
       <div className="container mx-auto px-6">
         <h2 className="text-sm font-mono text-gray-400 uppercase tracking-widest mb-16">
-          {language === 'pt-BR' ? 'O Que Eu Faço' : 'What I Do'}
+          {language === "pt-BR" ? "O Que Eu Faço" : "What I Do"}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -34,6 +39,17 @@ export const Services: React.FC = () => {
               </p>
             </motion.div>
           ))}
+        </div>
+
+        <div className="mt-12 flex justify-center">
+          <MagneticButton onClick={scrollToContact}>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 border border-white/40 text-white px-6 py-3 rounded-full font-bold uppercase text-sm tracking-widest bg-white text-black transition-colors interactive"
+            >
+              {language === "pt-BR" ? "Solicitar Orçamento" : "Get a Quote"}
+            </button>
+          </MagneticButton>
         </div>
       </div>
     </section>

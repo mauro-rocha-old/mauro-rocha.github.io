@@ -1,26 +1,16 @@
-import React from "react";
 import { motion } from "framer-motion";
+import React from "react";
 import { useData } from "../context/DataContext";
-
-const skills = [
-  "React",
-  "TypeScript",
-  "Next.js",
-  "Node.js",
-  "WebGL",
-  "Three.js",
-  "Framer Motion",
-  "Tailwind CSS",
-  "UI/UX Design",
-  "Accessibility",
-  "Performance",
-  "Conversational AI",
-  "AI Integration",
-];
+import { MagneticButton } from "./MagneticButton";
 
 export const About: React.FC = () => {
   const { content, language } = useData();
   const t = content.about;
+  const skills = t.skills || [];
+  const scrollToContact = () => {
+    const element = document.querySelector("#contact");
+    element?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <section
@@ -38,9 +28,13 @@ export const About: React.FC = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
                 viewport={{ once: true }}
-                className="text-4xl md:text-6xl font-display font-bold text-white drop-shadow-md leading-tight"
+                className="text-4xl md:text-6xl font-display font-bold leading-tight"
               >
-                {t.title[language]}
+                <MagneticButton className="inline-block">
+                  <span className="text-white hover:text-gray-300 transition-colors interactive drop-shadow-md">
+                    {t.title[language]}
+                  </span>
+                </MagneticButton>
               </motion.h2>
 
               {/* Profile Picture - Moved below title */}
@@ -97,19 +91,30 @@ export const About: React.FC = () => {
                 >
                   {t.skillsTitle[language]}
                 </motion.h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {skills.map((skill, idx) => (
-                    <motion.span
-                      key={skill}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.5 + idx * 0.05 }}
-                      viewport={{ once: true }}
-                      className="px-4 py-2 border border-white/20 rounded-full text-sm hover:bg-white hover:text-black transition-colors duration-300 cursor-default bg-white/5 backdrop-blur-md text-gray-200"
-                    >
-                      {skill}
-                    </motion.span>
+                    <MagneticButton key={`${skill}-${idx}`} className="inline-block p-1.5">
+                      <motion.span
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.5 + idx * 0.05 }}
+                        viewport={{ once: true }}
+                        className="px-4 py-2 border border-white/20 rounded-full text-sm hover:bg-white hover:text-black transition-colors duration-300 cursor-default bg-white/5 backdrop-blur-md text-gray-200"
+                      >
+                        {skill}
+                      </motion.span>
+                    </MagneticButton>
                   ))}
+                </div>
+                <div className="mt-8 w-fit">
+                  <MagneticButton onClick={scrollToContact}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 border border-white/40 text-white px-6 py-3 rounded-full font-bold uppercase text-sm tracking-widest bg-white text-black transition-colors interactive"
+                    >
+                      {language === "pt-BR" ? "Vamos conversar" : "Let’s Talk"}
+                    </button>
+                  </MagneticButton>
                 </div>
               </div>
             </div>
@@ -126,18 +131,26 @@ export const About: React.FC = () => {
         >
           {[...Array(2)].map((_, i) => (
             <div key={i} className="flex gap-12 px-6 items-center">
-              <span className="text-7xl md:text-9xl font-display font-bold text-outline drop-shadow-sm">
-                DISRUPTIVE
-              </span>
-              <span className="text-7xl md:text-9xl font-display font-bold text-blue-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.6)]">
-                CREATIVE
-              </span>
-              <span className="text-7xl md:text-9xl font-display font-bold text-outline drop-shadow-sm">
-                INNOVATIVE
-              </span>
-              <span className="text-7xl md:text-9xl font-display font-bold text-white drop-shadow-lg">
-                BOLD
-              </span>
+              <MagneticButton className="inline-block">
+                <span className="text-7xl md:text-9xl font-display font-bold text-outline drop-shadow-sm transition-all duration-300 interactive hover:opacity-80">
+                  DISRUPTIVE
+                </span>
+              </MagneticButton>
+              <MagneticButton className="inline-block">
+                <span className="text-7xl md:text-9xl font-display font-bold text-blue-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.6)] transition-all duration-300 interactive hover:opacity-80">
+                  CREATIVE
+                </span>
+              </MagneticButton>
+              <MagneticButton className="inline-block">
+                <span className="text-7xl md:text-9xl font-display font-bold text-outline drop-shadow-sm transition-all duration-300 interactive hover:opacity-80">
+                  INNOVATIVE
+                </span>
+              </MagneticButton>
+              <MagneticButton className="inline-block">
+                <span className="text-7xl md:text-9xl font-display font-bold text-white drop-shadow-lg transition-all duration-300 interactive hover:opacity-80">
+                  BOLD
+                </span>
+              </MagneticButton>
             </div>
           ))}
         </motion.div>

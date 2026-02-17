@@ -37,6 +37,7 @@ export interface SiteContent {
     p1: LocalizedString;
     p2: LocalizedString;
     skillsTitle: LocalizedString;
+    skills: string[];
     profileImage: string;
   };
   contact: {

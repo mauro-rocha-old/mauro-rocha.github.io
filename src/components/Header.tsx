@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Globe, Lock } from "lucide-react";
-import { MagneticButton } from "./MagneticButton";
+import { AnimatePresence, motion } from "framer-motion";
+import { Globe, Menu, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useData } from "../context/DataContext";
+import { MagneticButton } from "./MagneticButton";
 
 export const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { language, setLanguage, isAuthenticated } = useData();
+  const { language, setLanguage, isAuthenticated, projects } = useData();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -28,6 +28,10 @@ export const Header: React.FC = () => {
     setIsMenuOpen(false);
 
     if (href.startsWith("#")) {
+      if (href === "#top") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
       if (location.pathname !== "/") {
         navigate("/");
         setTimeout(() => {
@@ -43,12 +47,26 @@ export const Header: React.FC = () => {
     }
   };
 
+  const handleHomeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 100);
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const showWorkLink = !!projects && projects.length > 0;
+
   const navLinks = [
-    { name: language === "pt-BR" ? "Trabalhos" : "Work", href: "#work" },
+    { name: language === "pt-BR" ? "Trabalhos" : "Work", href: "#work", show: showWorkLink },
     { name: language === "pt-BR" ? "Sobre" : "About", href: "#about" },
     { name: language === "pt-BR" ? "Serviços" : "Services", href: "#services" },
     { name: language === "pt-BR" ? "Contato" : "Contact", href: "#contact" },
-  ];
+  ].filter((link) => link.show !== false);
 
   return (
     <>
@@ -64,47 +82,50 @@ export const Header: React.FC = () => {
           <MagneticButton>
             <Link
               to="/"
+              onClick={handleHomeClick}
               className="text-2xl font-display font-bold tracking-tighter text-white hover:text-gray-300 transition-colors interactive drop-shadow-md"
             >
               MAURO ROCHA
             </Link>
           </MagneticButton>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex gap-8 items-center">
-            {navLinks.map((link) => (
-              <MagneticButton key={link.name}>
-                <button
-                  onClick={() => handleNavClick(link.href)}
-                  className="text-sm font-bold uppercase tracking-widest text-white hover:text-blue-400 transition-colors interactive drop-shadow-md"
-                >
-                  {link.name}
+          <>
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex gap-8 items-center">
+              {navLinks.map((link) => (
+                <MagneticButton key={link.name}>
+                  <button
+                    onClick={() => handleNavClick(link.href)}
+                    className="text-sm font-bold uppercase tracking-widest text-white hover:text-blue-400 transition-colors interactive drop-shadow-md"
+                  >
+                    {link.name}
+                  </button>
+                </MagneticButton>
+              ))}
+
+              <div className="w-px h-6 bg-white/20 mx-2"></div>
+
+              <MagneticButton onClick={toggleLanguage}>
+                <button className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-white hover:text-blue-400 transition-colors interactive drop-shadow-md">
+                  <Globe className="w-4 h-4" />
+                  {/* Shows the language you will switch TO, not the current one */}
+                  {language === "pt-BR" ? "EN" : "PT-BR"}
                 </button>
               </MagneticButton>
-            ))}
+            </nav>
 
-            <div className="w-px h-6 bg-white/20 mx-2"></div>
-
-            <MagneticButton onClick={toggleLanguage}>
-              <button className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-white hover:text-blue-400 transition-colors interactive drop-shadow-md">
-                <Globe className="w-4 h-4" />
-                {/* Shows the language you will switch TO, not the current one */}
-                {language === "pt-BR" ? "EN" : "PT-BR"}
-              </button>
-            </MagneticButton>
-          </nav>
-
-          {/* Mobile Menu Toggle */}
-          <div className="md:hidden flex items-center gap-4">
-            <MagneticButton onClick={toggleLanguage}>
-              <span className="text-xs font-bold uppercase text-white drop-shadow-md">
-                {language === "pt-BR" ? "EN" : "PT-BR"}
-              </span>
-            </MagneticButton>
-            <MagneticButton onClick={() => setIsMenuOpen(true)}>
-              <Menu className="w-8 h-8 interactive text-white drop-shadow-md" />
-            </MagneticButton>
-          </div>
+            {/* Mobile Menu Toggle */}
+            <div className="md:hidden flex items-center gap-4">
+              <MagneticButton onClick={toggleLanguage}>
+                <span className="text-xs font-bold uppercase text-white drop-shadow-md">
+                  {language === "pt-BR" ? "EN" : "PT-BR"}
+                </span>
+              </MagneticButton>
+              <MagneticButton onClick={() => setIsMenuOpen(true)}>
+                <Menu className="w-8 h-8 interactive text-white drop-shadow-md" />
+              </MagneticButton>
+            </div>
+          </>
         </div>
       </header>
 

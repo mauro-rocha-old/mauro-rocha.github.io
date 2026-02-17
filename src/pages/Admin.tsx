@@ -1,10 +1,10 @@
 // Admin.tsx
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, CheckCircle, Loader, LogOut, Plus, Save, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useData } from "../context/DataContext";
 import { Project, Service, SiteContent } from "../types";
-import { Save, LogOut, CheckCircle, AlertCircle, Loader, Plus, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 
 // ---------- Helpers (evita undefined quebrando a UI) ----------
 type LangObj = { "pt-BR": string; en: string };
@@ -313,6 +313,18 @@ export const Admin: React.FC = () => {
     });
   };
 
+  const handleContentArrayChange = (field: string, value: string) => {
+    if (!editContentForm) return;
+    const array = value
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s !== "");
+    setEditContentForm({
+      ...editContentForm,
+      [field]: array,
+    });
+  };
+
   // ---------------- RENDER ----------------
   if (!isAuthenticated) {
     return (
@@ -370,6 +382,7 @@ export const Admin: React.FC = () => {
 
   const aboutTitle = ensureLangObj(about.title);
   const aboutP1 = ensureLangObj(about.p1);
+  const aboutSkills = Array.isArray(about.skills) ? about.skills : [];
 
   const contactTitle = ensureLangObj(contact.title);
   const contactFooter = ensureLangObj(contact.footerText);
@@ -1203,6 +1216,18 @@ export const Admin: React.FC = () => {
                       />
                     </div>
 
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block uppercase tracking-wider">
+                        Skills (Comma separated)
+                      </label>
+                      <input
+                        value={(editContentForm?.skills ?? []).join(", ")}
+                        onChange={(e) => handleContentArrayChange("skills", e.target.value)}
+                        className="w-full bg-background border border-white/20 p-3 rounded text-white font-mono text-sm focus:border-blue-500 transition-colors"
+                        placeholder="React, TypeScript, Three.js..."
+                      />
+                    </div>
+
                     <div className="flex gap-4 mt-6 pt-6 border-t border-white/10">
                       <button
                         onClick={handleSaveContent}
@@ -1229,6 +1254,9 @@ export const Admin: React.FC = () => {
                     </p>
                     <p>
                       <strong>Intro:</strong> {(aboutP1.en || "").substring(0, 50)}...
+                    </p>
+                    <p>
+                      <strong>Skills:</strong> {aboutSkills.length}
                     </p>
                   </div>
                 )}

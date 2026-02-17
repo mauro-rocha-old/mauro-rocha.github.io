@@ -14,13 +14,13 @@ export const Footer: React.FC = () => {
       style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 600px' }}
     >
       <div className="container mx-auto flex flex-col items-center text-center">
-        <h2 className="text-5xl md:text-8xl font-display font-bold mb-12 tracking-tighter">
+        <h2 className="text-5xl md:text-8xl font-display font-bold mb-12 tracking-tighter interactive">
           {t.title[language]}
         </h2>
-        
+
         <div className="flex flex-col md:flex-row gap-6 mb-12">
             <MagneticButton className="relative hover:z-50">
-            <a 
+            <a
                 href={`mailto:${t.email}`}
                 className="text-lg md:text-2xl px-8 py-4 border border-white/30 rounded-full hover:bg-white hover:text-black transition-all duration-300 interactive inline-block"
             >
@@ -29,7 +29,7 @@ export const Footer: React.FC = () => {
             </MagneticButton>
 
             <MagneticButton className="relative hover:z-50">
-                <a 
+                <a
                 href="https://wa.me/5555997036280"
                 target="_blank"
                 rel="noopener noreferrer"
