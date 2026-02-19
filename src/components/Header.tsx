@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Globe, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useData } from "../context/DataContext";
@@ -23,6 +23,11 @@ export const Header: React.FC = () => {
   const toggleLanguage = () => {
     setLanguage(language === "pt-BR" ? "en" : "pt-BR");
   };
+
+  const languageTarget =
+    language === "pt-BR"
+      ? { short: "EN", flag: "🇺🇸", ariaLabel: "Switch language to English" }
+      : { short: "PT", flag: "🇧🇷", ariaLabel: "Mudar idioma para Português" };
 
   const handleNavClick = (href: string) => {
     setIsMenuOpen(false);
@@ -106,10 +111,14 @@ export const Header: React.FC = () => {
               <div className="w-px h-6 bg-white/20 mx-2"></div>
 
               <MagneticButton onClick={toggleLanguage}>
-                <button className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-white hover:text-blue-400 transition-colors interactive drop-shadow-md">
-                  <Globe className="w-4 h-4" />
-                  {/* Shows the language you will switch TO, not the current one */}
-                  {language === "pt-BR" ? "EN" : "PT-BR"}
+                <button
+                  aria-label={languageTarget.ariaLabel}
+                  className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-white hover:text-blue-400 transition-colors interactive drop-shadow-md"
+                >
+                  <span className="text-base leading-none" aria-hidden="true">
+                    {languageTarget.flag}
+                  </span>
+                  {languageTarget.short}
                 </button>
               </MagneticButton>
             </nav>
@@ -117,9 +126,15 @@ export const Header: React.FC = () => {
             {/* Mobile Menu Toggle */}
             <div className="md:hidden flex items-center gap-4">
               <MagneticButton onClick={toggleLanguage}>
-                <span className="text-xs font-bold uppercase text-white drop-shadow-md">
-                  {language === "pt-BR" ? "EN" : "PT-BR"}
-                </span>
+                <button
+                  aria-label={languageTarget.ariaLabel}
+                  className="flex items-center gap-1 text-xs font-bold uppercase text-white drop-shadow-md"
+                >
+                  <span className="text-sm leading-none" aria-hidden="true">
+                    {languageTarget.flag}
+                  </span>
+                  {languageTarget.short}
+                </button>
               </MagneticButton>
               <MagneticButton onClick={() => setIsMenuOpen(true)}>
                 <Menu className="w-8 h-8 interactive text-white drop-shadow-md" />

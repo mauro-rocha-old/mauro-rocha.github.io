@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import React from "react";
 import { useData } from "../context/DataContext";
 import { MagneticButton } from "./MagneticButton";
@@ -90,7 +90,6 @@ export const Hero: React.FC = () => {
                   className="inline-flex items-center gap-2 border border-white/40 text-white px-5 py-2.5 rounded-full font-bold uppercase text-xs tracking-widest bg-white text-black transition-colors interactive"
                 >
                   {language === "pt-BR" ? "Fale comigo" : "Let’s Talk"}
-                  <ArrowRight className="w-4 h-4" />
                 </button>
               </MagneticButton>
             </div>
