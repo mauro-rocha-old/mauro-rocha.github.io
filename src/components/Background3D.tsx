@@ -1,7 +1,9 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial, Icosahedron, Box, Octahedron, MeshDistortMaterial, Float } from '@react-three/drei';
 import * as THREE from 'three';
+
+type PointerRef = React.MutableRefObject<{ x: number; y: number }>;
 
 // Fix for missing JSX.IntrinsicElements
 // Augmenting both global JSX and React.JSX to ensure compatibility across different React/TS configurations
@@ -122,14 +124,14 @@ const CyberCore = () => {
   );
 };
 
-const InteractiveCore = () => {
+const InteractiveCore = ({ pointerRef }: { pointerRef: PointerRef }) => {
   const groupRef = useRef<THREE.Group>(null);
   
-  useFrame((state) => {
+  useFrame(() => {
     if (groupRef.current) {
-      // Get mouse position (-1 to 1)
-      const x = state.pointer.x;
-      const y = state.pointer.y;
+      // Global mouse position normalized from -1 to 1.
+      const x = pointerRef.current.x;
+      const y = pointerRef.current.y;
       
       // --- ROTATION INTERACTION ---
       // Rotate the entire group to face/follow the mouse
@@ -169,7 +171,7 @@ const InteractiveCore = () => {
   )
 }
 
-const TechDebris = () => {
+const TechDebris = ({ pointerRef }: { pointerRef: PointerRef }) => {
     const groupRef = useRef<THREE.Group>(null);
     
     // Generate random tech bits floating around
@@ -186,13 +188,13 @@ const TechDebris = () => {
         }))
     }, []);
 
-    useFrame((state, delta) => {
+    useFrame((_, delta) => {
         if(groupRef.current) {
             groupRef.current.rotation.y += delta * 0.05;
             
             // Subtle mouse influence on debris too
-            groupRef.current.rotation.x = state.pointer.y * 0.1;
-            groupRef.current.rotation.z = state.pointer.x * 0.1;
+            groupRef.current.rotation.x = pointerRef.current.y * 0.1;
+            groupRef.current.rotation.z = pointerRef.current.x * 0.1;
         }
     })
 
@@ -215,11 +217,11 @@ const TechDebris = () => {
     )
 }
 
-const Rig = () => {
+const Rig = ({ pointerRef }: { pointerRef: PointerRef }) => {
     useFrame((state) => {
         // Reduced camera movement intensity to let the object interaction take focus
-        const x = state.pointer.x * 0.1;
-        const y = state.pointer.y * 0.1;
+        const x = pointerRef.current.x * 0.1;
+        const y = pointerRef.current.y * 0.1;
         state.camera.position.x += (x - state.camera.position.x) * 0.05;
         state.camera.position.y += (y - state.camera.position.y) * 0.05;
         state.camera.lookAt(0, 0, 0);
@@ -228,6 +230,43 @@ const Rig = () => {
 }
 
 export const Background3D: React.FC = () => {
+  const pointerRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const updatePointer = (clientX: number, clientY: number) => {
+      const width = window.innerWidth || 1;
+      const height = window.innerHeight || 1;
+
+      pointerRef.current.x = (clientX / width) * 2 - 1;
+      pointerRef.current.y = -(clientY / height) * 2 + 1;
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      updatePointer(event.clientX, event.clientY);
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) return;
+      updatePointer(touch.clientX, touch.clientY);
+    };
+
+    const resetPointer = () => {
+      pointerRef.current.x = 0;
+      pointerRef.current.y = 0;
+    };
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('blur', resetPointer);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('blur', resetPointer);
+    };
+  }, []);
+
   return (
     <div id="webgl-container">
       <Canvas
@@ -243,14 +282,14 @@ export const Background3D: React.FC = () => {
         <directionalLight position={[-5, -5, -5]} intensity={2} color="#2563eb" />
         <pointLight position={[0, 0, 2]} intensity={1} color="#60a5fa" distance={10} />
         
-        <Rig />
+        <Rig pointerRef={pointerRef} />
         <ParticleField />
         
         {/* Main Interactive Element */}
-        <InteractiveCore />
+        <InteractiveCore pointerRef={pointerRef} />
 
         {/* Floating Debris Everywhere */}
-        <TechDebris />
+        <TechDebris pointerRef={pointerRef} />
 
       </Canvas>
     </div>

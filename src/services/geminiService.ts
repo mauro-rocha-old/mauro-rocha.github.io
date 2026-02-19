@@ -1,8 +1,14 @@
-import { GoogleGenAI } from "@google/genai";
+let aiPromise: Promise<any> | null = null;
 
-// Initialize Gemini Client
-// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getAIClient = async () => {
+  if (!aiPromise) {
+    aiPromise = import("@google/genai").then(({ GoogleGenAI }) => {
+      return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    });
+  }
+
+  return aiPromise;
+};
 
 export const generateAIResponse = async (history: { role: string; text: string }[], userMessage: string): Promise<string> => {
   if (!process.env.API_KEY) {
@@ -10,6 +16,7 @@ export const generateAIResponse = async (history: { role: string; text: string }
   }
 
   try {
+    const ai = await getAIClient();
     const model = 'gemini-3-flash-preview';
     
     // Construct the prompt with context

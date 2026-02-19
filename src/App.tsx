@@ -46,19 +46,56 @@ function App() {
     if (requestIdle) {
       const idleId = requestIdle(() => {
         setEnableFX(true);
-        setEnableAI(true);
       }, { timeout: 2000 });
       return () => cancelIdle?.(idleId);
     }
 
     timeoutId = window.setTimeout(() => {
       setEnableFX(true);
-      setEnableAI(true);
     }, 1500);
     return () => {
       if (timeoutId) window.clearTimeout(timeoutId);
     };
   }, []);
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const saveData = (navigator as any).connection?.saveData;
+    if (prefersReducedMotion || saveData) return;
+
+    let timeoutId: number | null = null;
+    let enabled = false;
+
+    const removeListeners = () => {
+      window.removeEventListener('pointerdown', onInteraction);
+      window.removeEventListener('touchstart', onInteraction);
+      window.removeEventListener('keydown', onInteraction);
+      window.removeEventListener('scroll', onInteraction);
+    };
+
+    const enable = () => {
+      if (enabled) return;
+      enabled = true;
+      setEnableAI(true);
+      removeListeners();
+    };
+
+    const onInteraction = () => {
+      enable();
+    };
+
+    window.addEventListener('pointerdown', onInteraction, { passive: true });
+    window.addEventListener('touchstart', onInteraction, { passive: true });
+    window.addEventListener('keydown', onInteraction);
+    window.addEventListener('scroll', onInteraction, { passive: true });
+
+    timeoutId = window.setTimeout(enable, isMobile ? 7000 : 3500);
+
+    return () => {
+      removeListeners();
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, [isMobile]);
 
   return (
     <DataProvider>
@@ -66,14 +103,14 @@ function App() {
         <div className="relative min-h-screen bg-transparent text-primary selection:bg-white selection:text-black">
           <ScrollToTop />
           {!isMobile && <CustomCursor />}
-          
+
           {enableFX && !isMobile && (
             <Suspense fallback={null}>
               <Background3D />
             </Suspense>
           )}
           <Header />
-          
+
           <main className="relative z-10">
             <Suspense fallback={null}>
               <Routes>
@@ -84,7 +121,7 @@ function App() {
               </Routes>
             </Suspense>
           </main>
-          
+
           {enableAI && (
             <Suspense fallback={null}>
               <AIChat />

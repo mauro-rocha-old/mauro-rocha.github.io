@@ -1,24 +1,5 @@
-// DataContext.tsx
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  User,
-} from "firebase/auth";
-import {
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  orderBy,
-  query,
-  runTransaction,
-  serverTimestamp,
-  setDoc,
-} from "firebase/firestore";
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { db } from "../config/firebase";
+import type { User } from "firebase/auth";
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Language, Project, Service, SiteContent } from "../types";
 
 type Result = Promise<boolean>;
@@ -49,30 +30,55 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// -------------------- DEFAULTS + NORMALIZAÇÃO --------------------
+// -------------------- DEFAULTS + NORMALIZATION --------------------
 type LangObj = { "pt-BR": string; en: string };
 
 const defaultLang = (): LangObj => ({ "pt-BR": "", en: "" });
 
 const defaultContent: SiteContent = {
   hero: {
-    role: defaultLang(),
-    title: defaultLang(),
-    subtitle: defaultLang(),
-    cta: defaultLang(),
+    role: {
+      "pt-BR": "Engenheiro de Software · IA & Dados · Produto",
+      en: "Software Engineer · AI & Data · Product",
+    },
+    title: {
+      "pt-BR": "Arquiteto de Sistemas",
+      en: "Systems Architect",
+    },
+    subtitle: {
+      "pt-BR":
+        "Da arquitetura mobile ao backend orientado a dados. Construo sistemas que pensam, escalam e geram resultado real para o negocio.",
+      en: "From mobile architecture to data-driven backend. I build systems that think, scale, and drive real business outcomes.",
+    },
+    cta: {
+      "pt-BR": "Fale comigo",
+      en: "Let's Talk",
+    },
   },
   about: {
-    title: defaultLang(),
+    title: {
+      "pt-BR": "Sobre",
+      en: "About",
+    },
     p1: defaultLang(),
     p2: defaultLang(),
-    skillsTitle: defaultLang(),
-    skills: [],
-    profileImage: "",
+    skillsTitle: {
+      "pt-BR": "Habilidades",
+      en: "Skills",
+    },
+    skills: ["React", "TypeScript", "Next.js", "WebGL", "Node.js"],
+    profileImage: "/images/profile.JPG",
   },
   contact: {
-    title: defaultLang(),
-    email: "",
-    footerText: defaultLang(),
+    title: {
+      "pt-BR": "Contato",
+      en: "Contact",
+    },
+    email: "contato@mauro-rocha.com.br",
+    footerText: {
+      "pt-BR": "Vamos construir algo de alto impacto.",
+      en: "Let's build something with real impact.",
+    },
   },
 };
 
@@ -88,10 +94,6 @@ function normalizeStringArray(base: string[], incoming: any): string[] {
   return incoming.map((v) => (typeof v === "string" ? v.trim() : "")).filter((v) => v !== "");
 }
 
-/**
- * Garante que SEMPRE teremos hero/about/contact e suas chaves internas.
- * Isso evita "Cannot read properties of undefined (reading 'title')" em qualquer página.
- */
 function normalizeContent(raw: any): SiteContent {
   const c = raw ?? {};
 
@@ -118,9 +120,39 @@ function normalizeContent(raw: any): SiteContent {
   };
 }
 
-// -------------------- UTIL --------------------
-function assertDb() {
-  if (!db) throw new Error("Firestore não está configurado (db undefined).");
+interface CachedData {
+  projects: Project[];
+  services: Service[];
+  content: SiteContent;
+}
+
+const CACHE_KEY = "mauro-rocha-portfolio-cache-v1";
+
+function readCache(): CachedData | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    return {
+      projects: Array.isArray(parsed?.projects) ? parsed.projects : [],
+      services: Array.isArray(parsed?.services) ? parsed.services : [],
+      content: normalizeContent(parsed?.content),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(data: CachedData) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+  } catch {
+    // Ignore quota and privacy mode errors.
+  }
 }
 
 function mapDocWithNumericId<T extends { id: number }>(d: any): T {
@@ -131,45 +163,134 @@ function mapDocWithNumericId<T extends { id: number }>(d: any): T {
   return { ...data, id } as T;
 }
 
-/**
- * IDs sequenciais sem colisão usando transaction no meta/counters.
- * Lembrete: suas Rules PRECISAM permitir read+write em /meta/counters para admin.
- */
-async function nextId(key: "projects" | "services"): Promise<number> {
-  assertDb();
-  const countersRef = doc(db, "meta", "counters");
+type FirebaseDeps = {
+  db: any;
+  firestore: typeof import("firebase/firestore");
+  auth: typeof import("firebase/auth");
+};
 
-  return runTransaction(db, async (tx) => {
+let firebaseDepsPromise: Promise<FirebaseDeps | null> | null = null;
+
+async function getFirebaseDeps(): Promise<FirebaseDeps | null> {
+  if (!firebaseDepsPromise) {
+    firebaseDepsPromise = (async () => {
+      const [{ db }, firestore, auth] = await Promise.all([
+        import("../config/firebase"),
+        import("firebase/firestore"),
+        import("firebase/auth"),
+      ]);
+
+      if (!db) return null;
+
+      return {
+        db,
+        firestore,
+        auth,
+      };
+    })().catch((error) => {
+      console.error("Failed to load Firebase modules:", error);
+      return null;
+    });
+  }
+
+  return firebaseDepsPromise;
+}
+
+async function nextId(key: "projects" | "services"): Promise<number> {
+  const deps = await getFirebaseDeps();
+  if (!deps) throw new Error("Firestore is not configured.");
+
+  const { db, firestore } = deps;
+  const countersRef = firestore.doc(db, "meta", "counters");
+
+  return firestore.runTransaction(db, async (tx) => {
     const snap = await tx.get(countersRef);
     const current = snap.exists() ? (snap.data()?.[key] as number | undefined) : undefined;
     const next = (typeof current === "number" ? current : 0) + 1;
 
-    tx.set(countersRef, { [key]: next, updatedAt: serverTimestamp() }, { merge: true });
+    tx.set(countersRef, { [key]: next, updatedAt: firestore.serverTimestamp() }, { merge: true });
     return next;
   });
 }
 
-// -------------------- PROVIDER --------------------
+function useCachedInitialData() {
+  return useMemo(() => readCache(), []);
+}
+
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [content, setContent] = useState<SiteContent>(defaultContent);
+  const cached = useCachedInitialData();
+  const [projects, setProjects] = useState<Project[]>(cached?.projects ?? []);
+  const [services, setServices] = useState<Service[]>(cached?.services ?? []);
+  const [content, setContent] = useState<SiteContent>(cached?.content ?? defaultContent);
 
   const [language, setLanguage] = useState<Language>("pt-BR");
-
-  // Auth real
-  const auth = useMemo(() => getAuth(), []);
+  const authUnsubscribeRef = useRef<null | (() => void)>(null);
   const [user, setUser] = useState<User | null>(null);
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
-    return () => unsub();
-  }, [auth]);
+    writeCache({ projects, services, content });
+  }, [projects, services, content]);
+
+  const ensureAuthListener = async () => {
+    if (authUnsubscribeRef.current) return true;
+
+    const deps = await getFirebaseDeps();
+    if (!deps) return false;
+
+    const authInstance = deps.auth.getAuth();
+    authUnsubscribeRef.current = deps.auth.onAuthStateChanged(authInstance, (nextUser) => {
+      setUser(nextUser);
+    });
+    setUser(authInstance.currentUser);
+    return true;
+  };
+
+  useEffect(() => {
+    let canceled = false;
+    let idleId: number | null = null;
+    let timeoutId: number | null = null;
+
+    const start = () => {
+      if (canceled) return;
+      void ensureAuthListener();
+    };
+
+    const isAdminPath =
+      typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+
+    if (isAdminPath) {
+      start();
+    } else if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const requestIdle = (window as any).requestIdleCallback as (
+        cb: () => void,
+        opts?: { timeout?: number },
+      ) => number;
+      idleId = requestIdle(start, { timeout: 2500 });
+    } else {
+      timeoutId = window.setTimeout(start, 1500);
+    }
+
+    return () => {
+      canceled = true;
+      if (idleId !== null && typeof window !== "undefined" && "cancelIdleCallback" in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+      authUnsubscribeRef.current?.();
+      authUnsubscribeRef.current = null;
+    };
+  }, []);
 
   const login = async (email: string, password: string): Result => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const deps = await getFirebaseDeps();
+      if (!deps) return false;
+
+      const authInstance = deps.auth.getAuth();
+      await deps.auth.signInWithEmailAndPassword(authInstance, email, password);
+      setUser(authInstance.currentUser);
+      void ensureAuthListener();
       return true;
     } catch (e) {
       console.error("Auth login error:", e);
@@ -178,63 +299,120 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await signOut(auth);
+    const deps = await getFirebaseDeps();
+    if (!deps) return;
+
+    const authInstance = deps.auth.getAuth();
+    await deps.auth.signOut(authInstance);
+    setUser(authInstance.currentUser);
   };
 
-  // -------------------- LISTENERS --------------------
   useEffect(() => {
-    if (!db) {
-      console.warn("Firestore não configurado: listeners não iniciados.");
-      return;
+    let canceled = false;
+    let idleId: number | null = null;
+    let timeoutId: number | null = null;
+    let cleanup: null | (() => void) = null;
+
+    const start = async () => {
+      const deps = await getFirebaseDeps();
+      if (!deps || canceled) {
+        if (!deps) console.warn("Firestore is not configured: listeners were not started.");
+        return;
+      }
+
+      const { db, firestore } = deps;
+
+      const qProjects = firestore.query(
+        firestore.collection(db, "projects"),
+        firestore.orderBy("id", "asc"),
+      );
+      const unsubProjects = firestore.onSnapshot(
+        qProjects,
+        (snapshot) => {
+          setProjects(snapshot.docs.map((d) => mapDocWithNumericId<Project>(d)));
+        },
+        (error) => {
+          console.error("Firestore Error (projects):", error);
+          setProjects([]);
+        },
+      );
+
+      const qServices = firestore.query(
+        firestore.collection(db, "services"),
+        firestore.orderBy("id", "asc"),
+      );
+      const unsubServices = firestore.onSnapshot(
+        qServices,
+        (snapshot) => {
+          setServices(snapshot.docs.map((d) => mapDocWithNumericId<Service>(d)));
+        },
+        (error) => {
+          console.error("Firestore Error (services):", error);
+          setServices([]);
+        },
+      );
+
+      const unsubContent = firestore.onSnapshot(
+        firestore.doc(db, "site_content", "main"),
+        (snap) => {
+          if (snap.exists()) setContent(normalizeContent(snap.data()));
+          else setContent(defaultContent);
+        },
+        (error) => {
+          console.error("Firestore Error (content):", error);
+          setContent(defaultContent);
+        },
+      );
+
+      cleanup = () => {
+        unsubProjects();
+        unsubServices();
+        unsubContent();
+      };
+    };
+
+    const isAdminPath =
+      typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+
+    if (isAdminPath) {
+      void start();
+    } else if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const requestIdle = (window as any).requestIdleCallback as (
+        cb: () => void,
+        opts?: { timeout?: number },
+      ) => number;
+      idleId = requestIdle(() => {
+        void start();
+      }, { timeout: 3000 });
+    } else {
+      timeoutId = window.setTimeout(() => {
+        void start();
+      }, 1200);
     }
 
-    const qProjects = query(collection(db, "projects"), orderBy("id", "asc"));
-    const unsubProjects = onSnapshot(
-      qProjects,
-      (snapshot) => setProjects(snapshot.docs.map((d) => mapDocWithNumericId<Project>(d))),
-      (error) => {
-        console.error("Firestore Error (projects):", error);
-        setProjects([]);
-      },
-    );
-
-    const qServices = query(collection(db, "services"), orderBy("id", "asc"));
-    const unsubServices = onSnapshot(
-      qServices,
-      (snapshot) => setServices(snapshot.docs.map((d) => mapDocWithNumericId<Service>(d))),
-      (error) => {
-        console.error("Firestore Error (services):", error);
-        setServices([]);
-      },
-    );
-
-    const unsubContent = onSnapshot(
-      doc(db, "site_content", "main"),
-      (snap) => {
-        if (snap.exists()) setContent(normalizeContent(snap.data()));
-        else setContent(defaultContent);
-      },
-      (error) => {
-        console.error("Firestore Error (content):", error);
-        // mantém defaultContent para não quebrar a home
-        setContent(defaultContent);
-      },
-    );
-
     return () => {
-      unsubProjects();
-      unsubServices();
-      unsubContent();
+      canceled = true;
+      cleanup?.();
+      if (idleId !== null && typeof window !== "undefined" && "cancelIdleCallback" in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
   }, []);
 
-  // -------------------- CRUD: Projects --------------------
   const updateProject = async (updatedProject: Project): Result => {
     try {
-      assertDb();
-      if (!auth.currentUser) return false;
+      const deps = await getFirebaseDeps();
+      if (!deps) return false;
 
-      await setDoc(doc(db, "projects", String(updatedProject.id)), updatedProject, { merge: true });
+      const authInstance = deps.auth.getAuth();
+      if (!authInstance.currentUser) return false;
+
+      await deps.firestore.setDoc(
+        deps.firestore.doc(deps.db, "projects", String(updatedProject.id)),
+        updatedProject,
+        { merge: true },
+      );
       return true;
     } catch (e) {
       console.error("Error updating project:", e);
@@ -244,13 +422,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addProject = async (projectData: Omit<Project, "id">): Result => {
     try {
-      assertDb();
-      if (!auth.currentUser) return false;
+      const deps = await getFirebaseDeps();
+      if (!deps) return false;
+
+      const authInstance = deps.auth.getAuth();
+      if (!authInstance.currentUser) return false;
 
       const id = await nextId("projects");
       const newProject: Project = { ...projectData, id };
 
-      await setDoc(doc(db, "projects", String(id)), newProject);
+      await deps.firestore.setDoc(deps.firestore.doc(deps.db, "projects", String(id)), newProject);
       return true;
     } catch (e) {
       console.error("Error adding project:", e);
@@ -260,10 +441,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteProject = async (id: number): Result => {
     try {
-      assertDb();
-      if (!auth.currentUser) return false;
+      const deps = await getFirebaseDeps();
+      if (!deps) return false;
 
-      await deleteDoc(doc(db, "projects", String(id)));
+      const authInstance = deps.auth.getAuth();
+      if (!authInstance.currentUser) return false;
+
+      await deps.firestore.deleteDoc(deps.firestore.doc(deps.db, "projects", String(id)));
       return true;
     } catch (e) {
       console.error("Error deleting project:", e);
@@ -271,13 +455,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // -------------------- CRUD: Services --------------------
   const updateService = async (updatedService: Service): Result => {
     try {
-      assertDb();
-      if (!auth.currentUser) return false;
+      const deps = await getFirebaseDeps();
+      if (!deps) return false;
 
-      await setDoc(doc(db, "services", String(updatedService.id)), updatedService, { merge: true });
+      const authInstance = deps.auth.getAuth();
+      if (!authInstance.currentUser) return false;
+
+      await deps.firestore.setDoc(
+        deps.firestore.doc(deps.db, "services", String(updatedService.id)),
+        updatedService,
+        { merge: true },
+      );
       return true;
     } catch (e) {
       console.error("Error updating service:", e);
@@ -287,13 +477,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addService = async (serviceData: Omit<Service, "id">): Result => {
     try {
-      assertDb();
-      if (!auth.currentUser) return false;
+      const deps = await getFirebaseDeps();
+      if (!deps) return false;
+
+      const authInstance = deps.auth.getAuth();
+      if (!authInstance.currentUser) return false;
 
       const id = await nextId("services");
       const newService: Service = { ...serviceData, id };
 
-      await setDoc(doc(db, "services", String(id)), newService);
+      await deps.firestore.setDoc(deps.firestore.doc(deps.db, "services", String(id)), newService);
       return true;
     } catch (e) {
       console.error("Error adding service:", e);
@@ -303,10 +496,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteService = async (id: number): Result => {
     try {
-      assertDb();
-      if (!auth.currentUser) return false;
+      const deps = await getFirebaseDeps();
+      if (!deps) return false;
 
-      await deleteDoc(doc(db, "services", String(id)));
+      const authInstance = deps.auth.getAuth();
+      if (!authInstance.currentUser) return false;
+
+      await deps.firestore.deleteDoc(deps.firestore.doc(deps.db, "services", String(id)));
       return true;
     } catch (e) {
       console.error("Error deleting service:", e);
@@ -314,20 +510,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // -------------------- Content --------------------
   const updateContent = async (section: keyof SiteContent, data: any): Result => {
     try {
-      assertDb();
-      if (!auth.currentUser) return false;
+      const deps = await getFirebaseDeps();
+      if (!deps) return false;
 
-      // ✅ impede salvar conteúdo "manco": normaliza antes de persistir
+      const authInstance = deps.auth.getAuth();
+      if (!authInstance.currentUser) return false;
+
       const merged = normalizeContent({
         ...content,
         [section]: data,
       });
 
       setContent(merged);
-      await setDoc(doc(db, "site_content", "main"), merged, { merge: true });
+      await deps.firestore.setDoc(deps.firestore.doc(deps.db, "site_content", "main"), merged, {
+        merge: true,
+      });
       return true;
     } catch (e) {
       console.error("Error updating content:", e);
