@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mauro Rocha | Arquiteto Digital</title>
+    <meta name="description" content="A high-end, disruptive portfolio website featuring advanced animations, 3D-like interactions, and an AI-powered assistant." />
+    <meta name="keywords" content="Mauro Rocha, Arquiteto Digital, Frontend Engineer, WebGL, Three.js, React, TypeScript, UI/UX, Performance, Portfolio" />
+    <meta name="author" content="Mauro Rocha" />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Mauro Rocha | Arquiteto Digital" />
+    <meta property="og:description" content="A high-end, disruptive portfolio website featuring advanced animations, 3D-like interactions, and an AI-powered assistant." />
+    <meta property="og:url" content="https://mauro-rocha.com.br/" />
+    <meta property="og:site_name" content="Mauro Rocha" />
+    <meta property="og:image" content="/images/profile.JPG" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Mauro Rocha | Arquiteto Digital" />
+    <meta name="twitter:description" content="A high-end, disruptive portfolio website featuring advanced animations, 3D-like interactions, and an AI-powered assistant." />
+    <meta name="twitter:image" content="/images/profile.JPG" />
+    <link rel="canonical" href="https://mauro-rocha.com.br/" />
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Manrope', 'sans-serif'],
+              display: ['Oswald', 'sans-serif'],
+            },
+            colors: {
+              background: '#0a0a0a',
+              surface: '#121212',
+              primary: '#ffffff',
+              accent: '#3b82f6',
+            },
+            cursor: {
+              none: 'none',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #0a0a0a;
+        background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #0a0a0a 100%);
+        color: #ffffff;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+      /* Hide scrollbar for IE, Edge and Firefox */
+      .no-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+      }
+      
+      .text-outline {
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5); /* Increased opacity from 0.2 to 0.5 */
+        color: transparent;
+      }
+      
+      .custom-cursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 20px;
+        height: 20px;
+        border: 1px solid white;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: width 0.3s, height 0.3s, background-color 0.3s;
+        mix-blend-mode: difference;
+      }
+      .custom-cursor.hovered {
+        width: 50px;
+        height: 50px;
+        background-color: white;
+        mix-blend-mode: difference;
+      }
+      
+      #webgl-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 0;
+        pointer-events: none;
+      }
+    </style>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Mauro Rocha",
+        "jobTitle": "Senior Frontend Engineer",
+        "description": "Arquiteto Digital especializado em React, TypeScript, WebGL e UI/UX.",
+        "image": "/images/profile.JPG",
+        "email": "contato@mauro-rocha.com.br",
+        "sameAs": [
+          "https://github.com/mauro-rocha-old",
+          "https://www.linkedin.com/in/mauro-lucio-rocha/",
+          "https://www.instagram.com/mauro_lucio_0"
+        ]
+      }
+    </script>
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/src/index.tsx"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+
+Host: https://mauro-rocha.com.br
+Sitemap: https://mauro-rocha.com.br/sitemap.xml
