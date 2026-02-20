@@ -36,7 +36,7 @@ declare module 'react' {
 const ParticleField = () => {
   const ref = useRef<THREE.Points>(null);
   
-  const count = 1200;
+  const count = 700;
   const positions = useMemo(() => {
     const positions = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -94,7 +94,7 @@ const CyberCore = () => {
     <group>
         {/* Inner Liquid Core */}
         <Float speed={4} rotationIntensity={0.5} floatIntensity={1}>
-            <Icosahedron args={[1, 4]} ref={coreRef} scale={1.8}>
+            <Icosahedron args={[1, 2]} ref={coreRef} scale={1.8}>
                 <MeshDistortMaterial
                     color="#2563eb" 
                     attach="material"
@@ -176,7 +176,7 @@ const TechDebris = ({ pointerRef }: { pointerRef: PointerRef }) => {
     
     // Generate random tech bits floating around
     const bits = useMemo(() => {
-        return new Array(15).fill(0).map((_, i) => ({
+        return new Array(10).fill(0).map((_, i) => ({
             position: [
                 (Math.random() - 0.5) * 12,
                 (Math.random() - 0.5) * 12,
@@ -271,11 +271,9 @@ export const Background3D: React.FC = () => {
     <div id="webgl-container">
       <Canvas
         camera={{ position: [0, 0, 9], fov: 50 }}
-        gl={{ alpha: true, antialias: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }}
-        dpr={[1, 1.5]} 
+        gl={{ alpha: true, antialias: false, preserveDrawingBuffer: false }}
+        dpr={[1, 1.25]} 
       >
-        <color attach="background" args={['transparent']} />
-        
         {/* Cinematic Lighting */}
         <ambientLight intensity={0.2} />
         <directionalLight position={[5, 5, 5]} intensity={2} color="#ffffff" />

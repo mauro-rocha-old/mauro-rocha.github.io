@@ -73,6 +73,7 @@ const DeleteButton = ({ onDelete }: { onDelete: () => void }) => {
 export const Admin: React.FC = () => {
   const {
     isAuthenticated,
+    initAuth,
     login,
     logout,
     projects,
@@ -91,6 +92,7 @@ export const Admin: React.FC = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isAuthBootstrapping, setIsAuthBootstrapping] = useState(true);
 
   // Feedback Status
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error" | "offline">(
@@ -110,6 +112,31 @@ export const Admin: React.FC = () => {
   const [editContentForm, setEditContentForm] = useState<any | null>(null);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = "Admin | Mauro Rocha";
+
+    const robotsMeta = document.createElement("meta");
+    robotsMeta.name = "robots";
+    robotsMeta.content = "noindex, nofollow, noarchive, nosnippet";
+    robotsMeta.setAttribute("data-admin-meta", "robots");
+    document.head.appendChild(robotsMeta);
+
+    const googleBotMeta = document.createElement("meta");
+    googleBotMeta.name = "googlebot";
+    googleBotMeta.content = "noindex, nofollow, noarchive, nosnippet";
+    googleBotMeta.setAttribute("data-admin-meta", "googlebot");
+    document.head.appendChild(googleBotMeta);
+
+    void initAuth().finally(() => setIsAuthBootstrapping(false));
+
+    return () => {
+      document.title = previousTitle;
+      robotsMeta.remove();
+      googleBotMeta.remove();
+    };
+  }, [initAuth]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -326,6 +353,14 @@ export const Admin: React.FC = () => {
   };
 
   // ---------------- RENDER ----------------
+  if (isAuthBootstrapping) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader className="w-7 h-7 animate-spin text-white/70" />
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">

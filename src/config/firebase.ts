@@ -1,5 +1,5 @@
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { initializeApp, FirebaseApp } from "firebase/app";
+import { getFirestore, Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -17,15 +17,15 @@ let db: Firestore | undefined;
 try {
   // Check if config is still default placeholder
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    console.warn("Firebase configuration is missing or invalid. Falling back to local data mode.");
+    // console.warn("Firebase configuration is missing or invalid. Falling back to local data mode.");
   } else {
     // Initialize Firebase only if config looks valid
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
-    console.log("Firebase initialized successfully");
+    // console.log("Firebase initialized successfully");
   }
 } catch (error) {
-  console.error("Failed to initialize Firebase:", error);
+  // console.error("Failed to initialize Firebase:", error);
   // db remains undefined, app will handle fallback
 }
 

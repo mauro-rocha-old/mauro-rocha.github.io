@@ -24,6 +24,7 @@ interface DataContextType {
 
   isAuthenticated: boolean;
   user: User | null;
+  initAuth: () => Promise<boolean>;
   login: (email: string, password: string) => Result;
   logout: () => Promise<void>;
 }
@@ -232,7 +233,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     writeCache({ projects, services, content });
   }, [projects, services, content]);
 
-  const ensureAuthListener = async () => {
+  const initAuth = async () => {
     if (authUnsubscribeRef.current) return true;
 
     const deps = await getFirebaseDeps();
@@ -247,36 +248,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    let canceled = false;
-    let idleId: number | null = null;
-    let timeoutId: number | null = null;
-
-    const start = () => {
-      if (canceled) return;
-      void ensureAuthListener();
-    };
-
-    const isAdminPath =
-      typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
-
-    if (isAdminPath) {
-      start();
-    } else if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-      const requestIdle = (window as any).requestIdleCallback as (
-        cb: () => void,
-        opts?: { timeout?: number },
-      ) => number;
-      idleId = requestIdle(start, { timeout: 2500 });
-    } else {
-      timeoutId = window.setTimeout(start, 1500);
-    }
-
     return () => {
-      canceled = true;
-      if (idleId !== null && typeof window !== "undefined" && "cancelIdleCallback" in window) {
-        (window as any).cancelIdleCallback(idleId);
-      }
-      if (timeoutId !== null) window.clearTimeout(timeoutId);
       authUnsubscribeRef.current?.();
       authUnsubscribeRef.current = null;
     };
@@ -290,7 +262,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const authInstance = deps.auth.getAuth();
       await deps.auth.signInWithEmailAndPassword(authInstance, email, password);
       setUser(authInstance.currentUser);
-      void ensureAuthListener();
+      void initAuth();
       return true;
     } catch (e) {
       console.error("Auth login error:", e);
@@ -550,6 +522,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateContent,
       isAuthenticated,
       user,
+      initAuth,
       login,
       logout,
     }),

@@ -99,7 +99,7 @@ function App() {
 
   return (
     <DataProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="relative min-h-screen bg-transparent text-primary selection:bg-white selection:text-black">
           <ScrollToTop />
           {!isMobile && <CustomCursor />}

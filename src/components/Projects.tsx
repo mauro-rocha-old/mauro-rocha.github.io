@@ -40,7 +40,7 @@ export const Projects: React.FC = () => {
         <MagneticButton onClick={scrollToContact}>
           <button
             type="button"
-            className="inline-flex items-center gap-2 border border-white/40 text-white px-6 py-3 rounded-full font-bold uppercase text-sm tracking-widest bg-white text-black transition-colors interactive"
+            className="inline-flex items-center gap-2 border border-white/40 px-6 py-3 rounded-full font-bold uppercase text-sm tracking-widest bg-white text-black hover:bg-gray-200 hover:text-black transition-colors interactive"
           >
             {language === "pt-BR" ? "Fale comigo" : "Let’s Talk"}
           </button>

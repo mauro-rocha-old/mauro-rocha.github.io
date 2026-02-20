@@ -51,7 +51,7 @@ export const About: React.FC = () => {
                   alt="Mauro Rocha"
                   loading="lazy"
                   decoding="async"
-                  fetchPriority="low"
+                  fetchpriority="low"
                   width={800}
                   height={800}
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
@@ -110,7 +110,7 @@ export const About: React.FC = () => {
                   <MagneticButton onClick={scrollToContact}>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 border border-white/40 text-white px-6 py-3 rounded-full font-bold uppercase text-sm tracking-widest bg-white text-black transition-colors interactive"
+                      className="inline-flex items-center gap-2 border border-white/40 px-6 py-3 rounded-full font-bold uppercase text-sm tracking-widest bg-white text-black hover:bg-gray-200 hover:text-black transition-colors interactive"
                     >
                       {language === "pt-BR" ? "Vamos conversar" : "Let’s Talk"}
                     </button>

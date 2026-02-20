@@ -78,7 +78,7 @@ export const Hero: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-end mt-12 md:mt-24">
           <motion.div
             variants={item}
-            className="max-w-md p-6 bg-black/40 backdrop-blur-md rounded-xl border border-white/5 shadow-2xl"
+            className="max-w-md p-6 bg-white/5 backdrop-blur-md rounded-xl border border-white/5 shadow-2xl"
           >
             <p className="text-lg md:text-xl text-gray-100 leading-relaxed shadow-black drop-shadow-md font-medium interactive">
               {t.subtitle[language]}
@@ -87,7 +87,7 @@ export const Hero: React.FC = () => {
               <MagneticButton onClick={scrollToContact}>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 border border-white/40 text-white px-5 py-2.5 rounded-full font-bold uppercase text-xs tracking-widest bg-white text-black transition-colors interactive"
+                  className="inline-flex items-center gap-2 border border-white/40 px-5 py-2.5 rounded-full font-bold uppercase text-xs tracking-widest bg-white text-black hover:bg-gray-200 hover:text-black transition-colors interactive"
                 >
                   {language === "pt-BR" ? "Fale comigo" : "Let’s Talk"}
                 </button>
